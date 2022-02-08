@@ -1,4 +1,4 @@
-# WordlyRusSolver
+# WordlySolver
 Программа - асист для решения Wordle на русском и англйском
 
 
