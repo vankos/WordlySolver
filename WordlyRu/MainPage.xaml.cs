@@ -67,11 +67,12 @@ namespace WordlyRu
 
         private bool HaveAnyGrayLetters(string word)
         {
-            foreach (var letter in dataContext.GrayChars)
-            {
-                if (word.Contains(letter))
+
+                for (int i = 0; i < NumberOfLetters; i++)
+                {
+                if (dataContext.GrayChars.Contains(word[i]) && !dataContext.YellowChars.Contains(word[i]) && word[i]!=dataContext.Letters[i].ExactLetter)
                     return true;
-            }
+                }
             return false;
         }
 
