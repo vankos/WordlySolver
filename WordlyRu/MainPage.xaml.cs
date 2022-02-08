@@ -32,8 +32,6 @@ namespace WordlyRu
         {
             InitializeComponent();
             AddWordButtonsToList();
-            dataContext.AllWords = GetAllWords();
-            dataContext.AcceptableWords = dataContext.AllWords;
             DisplayWord(GetRandomWord(dataContext.AllWords));
         }
 
@@ -119,15 +117,7 @@ namespace WordlyRu
             }
         }
 
-        private HashSet<string> GetAllWords()
-        {
-            string currentDictionaryPath = Path.Combine(Environment.CurrentDirectory, "russian.txt");
-            return File.ReadAllLines(currentDictionaryPath)
-                .Where(word => word.Length == NumberOfLetters
-                && word.All(ch=>char.IsLetter(ch)))
-                .Select(word=> word.ToLower())
-                .ToHashSet();
-        }
+        
 
         private void SerachButton_Click(object sender, RoutedEventArgs e)
         {
@@ -165,25 +155,83 @@ namespace WordlyRu
         {
             DisplayWord(GetRandomWord(dataContext.AcceptableWords));
         }
+        private void SwitchLangButton_Click(object sender, RoutedEventArgs e)
+        {
+            dataContext.IsEng = !dataContext.IsEng;
+            (sender as Button).Content = dataContext.IsEng ? "RU" : "EN";
+            ClearContext();
+        }
+
+        private void ClearContext()
+        {
+            dataContext.ClearData();
+            DisplayWord(GetRandomWord(dataContext.AllWords));
+        }
     }
 
     class DataContext
     {
-        public HashSet<string> AllWords = new HashSet<string>();
+        public HashSet<string> AllWords 
+        {
+            get
+            {
+                if (IsEng)
+                    return _allEngWords;
+                else
+                    return _allRusWords;
+            }
+        }
+        private readonly HashSet<string> _allEngWords;
+        private readonly HashSet<string> _allRusWords;
+        private readonly int _numberOfLetters;
+
         public HashSet<char> YellowChars = new HashSet<char>();
         public HashSet<char> GrayChars = new HashSet<char>();
         public List<Letter> Letters;
         public HashSet<string> UsedWords = new HashSet<string>();
-        public HashSet<string> AcceptableWords = new HashSet<string>();
+        public HashSet<string> AcceptableWords;
         public string CurrentWord;
+        public bool IsEng = false;
+
+
+
 
         public DataContext(int numberOfLetters)
         {
-            Letters = new List<Letter>();
+            _numberOfLetters = numberOfLetters;
+            Letters = InitLetters(numberOfLetters);
+            _allRusWords = GetAllWordsFromFileDictionary(Path.Combine(Environment.CurrentDirectory, "russian.txt"));
+            _allEngWords = GetAllWordsFromFileDictionary(Path.Combine(Environment.CurrentDirectory, "english.txt"));
+            AcceptableWords = AllWords;
+        }
+
+        private List<Letter> InitLetters(int numberOfLetters)
+        {
+            var letters = new List<Letter>();
             for (int i = 0; i < numberOfLetters; i++)
             {
-                Letters.Add(new Letter());
+                letters.Add(new Letter());
             }
+            return letters;
+        }
+
+        private HashSet<string> GetAllWordsFromFileDictionary(string currentDictionaryPath)
+        {
+            return File.ReadAllLines(currentDictionaryPath)
+                .Where(word => word.Length == _numberOfLetters
+                && word.All(ch => char.IsLetter(ch)))
+                .Select(word => word.ToLower())
+                .ToHashSet();
+        }
+
+        internal void ClearData()
+        {
+            YellowChars.Clear();
+            GrayChars.Clear();
+            Letters = InitLetters(_numberOfLetters);
+            UsedWords.Clear();
+            AcceptableWords = AllWords;
+            CurrentWord = null;
         }
     }
 

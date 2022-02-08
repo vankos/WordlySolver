@@ -20,6 +20,7 @@
             <Button x:Name="SerachButton" Content="Найти слово" Click="SerachButton_Click" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="70" Margin="10"/>
             <Button x:Name="AnotherWord" Content="Другое слово" Click="AnotherWord_Click" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="70" Margin="10"/>
             <TextBlock x:Name="InfoText"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="50" Margin="10"/>
+            <Button Content="EN"  Name="SwitchKangButton" HorizontalAlignment="Center" VerticalAlignment="Bottom" Click="SwitchLangButton_Click"/>
         </StackPanel>
     </Grid>
 </Page>
