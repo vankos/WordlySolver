@@ -130,7 +130,7 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="english.txt" />
+    <Content Include="Dictionaries\english.txt" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -139,7 +139,7 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
-    <Content Include="russian.txt">
+    <Content Include="Dictionaries\russian.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

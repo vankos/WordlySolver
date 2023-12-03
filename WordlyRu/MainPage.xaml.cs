@@ -165,6 +165,8 @@ namespace WordlyRu
 
     class DataContext
     {
+        string DICTIONARY_DIRECTORY_NAME = "Dictionaries";
+
         public HashSet<string> AllWords 
         {
             get
@@ -207,8 +209,8 @@ namespace WordlyRu
         {
             _numberOfLetters = numberOfLetters;
             Letters = InitLetters(numberOfLetters);
-            _allRusWords = GetAllWordsFromFileDictionary(Path.Combine(Environment.CurrentDirectory, "russian.txt"));
-            _allEngWords = GetAllWordsFromFileDictionary(Path.Combine(Environment.CurrentDirectory, "english.txt"));
+            _allRusWords = GetAllWordsFromFileDictionary(Path.Combine(Environment.CurrentDirectory, DICTIONARY_DIRECTORY_NAME, "russian.txt"));
+            _allEngWords = GetAllWordsFromFileDictionary(Path.Combine(Environment.CurrentDirectory, DICTIONARY_DIRECTORY_NAME, "english.txt"));
             _rusletterFreq = CalcFrequency(_allRusWords);
             _engletterFreq = CalcFrequency(_allEngWords);
             AcceptableWords = GetProbabilityDictFromHash(AllWords);
