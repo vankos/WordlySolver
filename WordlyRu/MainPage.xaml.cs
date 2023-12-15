@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Windows.UI;
 using Windows.UI.Xaml;
@@ -13,18 +12,19 @@ namespace WordlyRu
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        const int NUMBER_OF_LETTERS = 6;
-        private readonly Context currentContext = new Context(NUMBER_OF_LETTERS);
-        private List<Button> wordButtons => LettersPanel.Children.Cast<Button>().ToList();
+        const int NUMBER_OF_LETTERS = 5;
+        private Context currentContext = new Context(NUMBER_OF_LETTERS, false);
+        private List<Button> WordButtons => LettersPanel.Children.Cast<Button>().ToList();
 
         public MainPage()
         {
             InitializeComponent();
-            FillButtonsList();
-            DisplayWord(currentContext.GetNextMostProbableWord());
+            CreateLettersButtons();
+            string mostProbableWord = currentContext.GetApropriateWord();
+            DisplayWord(mostProbableWord);
         }
 
-        private void FillButtonsList()
+        private void CreateLettersButtons()
         {
             for (int i = 0; i < NUMBER_OF_LETTERS; i++)
             {
@@ -52,15 +52,14 @@ namespace WordlyRu
 
         #region Buttons callbacks
 
-        private void SerachButton_Click(object sender, RoutedEventArgs e)
+        private void SerachButton_Click(object _, RoutedEventArgs __)
         {
-           UpdateContext();
+            UpdateContext();
             string foundWord = currentContext.GetApropriateWord();
             if (foundWord == null)
                 InfoText.Text = "Больше вариантов нет";
             else
                 DisplayWord(foundWord);
-
         }
 
         #endregion
@@ -69,8 +68,9 @@ namespace WordlyRu
         {
             for (int i = 0; i < NUMBER_OF_LETTERS; i++)
             {
-                wordButtons[i].Content = word[i];
+                WordButtons[i].Content = word[i];
             }
+
             currentContext.CurrentWord = word;
         }
 
@@ -79,17 +79,21 @@ namespace WordlyRu
             currentContext.UsedWords.Add(currentContext.CurrentWord);
             for (int i = 0; i < NUMBER_OF_LETTERS; i++)
             {
-                var backgroundBrush = wordButtons[i].Background as SolidColorBrush;
+                var backgroundBrush = WordButtons[i].Background as SolidColorBrush;
                 if (backgroundBrush.Color == Colors.Gray)
-                    currentContext.GrayChars.Add(wordButtons[i].Content.ToString()[0]);
+                {
+                    currentContext.GrayLetters.Add(WordButtons[i].Content.ToString()[0]);
+                }
                 else if (backgroundBrush.Color == Colors.Yellow)
                 {
-                    char letter = wordButtons[i].Content.ToString()[0];
-                    currentContext.YellowChars.Add(letter);
+                    char letter = WordButtons[i].Content.ToString()[0];
+                    currentContext.YellowLetters.Add(letter);
                     currentContext.Letters[i].ImpossibleLetters.Add(letter);
                 }
                 else if (backgroundBrush.Color == Colors.Green)
-                    currentContext.Letters[i].ExactLetter = wordButtons[i].Content.ToString()[0];
+                {
+                    currentContext.Letters[i].ExactLetter = WordButtons[i].Content.ToString()[0];
+                }
             }
         }
 
@@ -105,21 +109,16 @@ namespace WordlyRu
                 backgroundBrush.Color = Colors.Gray;
         }
 
-        private void AnotherWord_Click(object sender, RoutedEventArgs e)
+        private void AnotherWord_Click(object _, RoutedEventArgs __)
         {
-            DisplayWord(currentContext.GetNextMostProbableWord());
+            DisplayWord(currentContext.GetApropriateWord());
         }
-        private void SwitchLangButton_Click(object sender, RoutedEventArgs e)
+        private void SwitchLangButton_Click(object sender, RoutedEventArgs _)
         {
-            currentContext.IsEng = !currentContext.IsEng;
+            bool isEnglish = !currentContext.IsEng;
+            currentContext = new Context(NUMBER_OF_LETTERS, isEnglish);
+            DisplayWord(currentContext.GetApropriateWord());
             (sender as Button).Content = currentContext.IsEng ? "RU" : "EN";
-            ClearContext();
-        }
-
-        private void ClearContext()
-        {
-            currentContext.ClearData();
-            DisplayWord(currentContext.GetNextMostProbableWord());
         }
     }
 

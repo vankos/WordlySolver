@@ -1,58 +1,52 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace WordlyRu
 {
     class Context
     {
-        string DICTIONARY_DIRECTORY_NAME = "Dictionaries";
-
-        public HashSet<string> AllWords 
-        {
-            get
-            {
-                if (IsEng)
-                    return _allEngWords;
-                else
-                    return _allRusWords;
-            }
-        }
-
-        private Dictionary<char, double> _letterFreq
-        {
-            get
-            {
-                if (IsEng)
-                    return _engletterFreq;
-                else
-                    return _rusletterFreq;
-            }
-        }
-
-        private readonly HashSet<string> _allEngWords;
-        private readonly HashSet<string> _allRusWords;
         private readonly int _numberOfLetters;
-        private Dictionary<char, double> _rusletterFreq;
-        private Dictionary<char, double> _engletterFreq;
+        private readonly WordsDictionary _wordsDictionary;
+        private readonly FrequencyCalculator _frequencyCalculator;
+        private readonly HashSet<string> _allWordsOfAppropriateLenght;
 
-        public HashSet<char> YellowChars = new HashSet<char>();
-        public HashSet<char> GrayChars = new HashSet<char>();
+        public HashSet<char> YellowLetters = new HashSet<char>();
+        public HashSet<char> GrayLetters = new HashSet<char>();
         public List<Letter> Letters;
         public HashSet<string> UsedWords = new HashSet<string>();
-        public Dictionary<string, double> AcceptableWords;
         public string CurrentWord;
-        public bool IsEng = false;
+        public bool IsEng { get; }
+
+        public Context(int numberOfLetters, bool IsEnglish)
+        {
+            _numberOfLetters = numberOfLetters;
+            IsEng = IsEnglish;
+            _wordsDictionary = new WordsDictionary(IsEng);
+            _allWordsOfAppropriateLenght = _wordsDictionary.GetWordsWithLenght(numberOfLetters);
+            HashSet<string> allWords = _wordsDictionary.GetAllWords();
+            _frequencyCalculator = new FrequencyCalculator(allWords);
+            Letters = InitLetters(numberOfLetters);
+        }
+
+        private List<Letter> InitLetters(int numberOfLetters)
+        {
+            var letters = new List<Letter>();
+            for (int i = 0; i < numberOfLetters; i++)
+            {
+                letters.Add(new Letter());
+            }
+            return letters;
+        }
 
         public string GetApropriateWord()
         {
-            AcceptableWords = GetProbabilityDictForWords(AllWords
+            IEnumerable<string> allApropriateWord = _allWordsOfAppropriateLenght
                 .Where(word => HaveKnownPositions(word)
                 && HaveAllYellowLetters(word)
                 && !HaveAnyGrayLetters(word)
-                && !UsedWords.Contains(word)).ToHashSet());
-            return AcceptableWords.FirstOrDefault().Key;
+                && !UsedWords.Contains(word));
+            string mostProbableApropriateWord = _frequencyCalculator.GetMostProbableWord(allApropriateWord);
+            return mostProbableApropriateWord;
         }
 
         private bool HaveKnownPositions(string word)
@@ -71,7 +65,7 @@ namespace WordlyRu
 
         private bool HaveAllYellowLetters(string word)
         {
-            foreach (var letter in YellowChars)
+            foreach (var letter in YellowLetters)
             {
                 if (!word.Contains(letter))
                     return false;
@@ -81,104 +75,12 @@ namespace WordlyRu
 
         private bool HaveAnyGrayLetters(string word)
         {
-
             for (int i = 0; i < _numberOfLetters; i++)
             {
-                if (GrayChars.Contains(word[i]) && !YellowChars.Contains(word[i]) && word[i] != Letters[i].ExactLetter)
+                if (GrayLetters.Contains(word[i]) && !YellowLetters.Contains(word[i]) && word[i] != Letters[i].ExactLetter)
                     return true;
             }
             return false;
-        }
-
-
-        public Context(int numberOfLetters)
-        {
-            _numberOfLetters = numberOfLetters;
-            Letters = InitLetters(numberOfLetters);
-            _allRusWords = GetAllWordsFromFileDictionary(Path.Combine(Environment.CurrentDirectory, DICTIONARY_DIRECTORY_NAME, "russian.txt"));
-            _allEngWords = GetAllWordsFromFileDictionary(Path.Combine(Environment.CurrentDirectory, DICTIONARY_DIRECTORY_NAME, "english.txt"));
-            _rusletterFreq = CalcFrequency(_allRusWords);
-            _engletterFreq = CalcFrequency(_allEngWords);
-            AcceptableWords = GetProbabilityDictForWords(AllWords);
-        }
-
-        private Dictionary<char, double> CalcFrequency(HashSet<string> words)
-        {
-            int allCharsCount = words.Sum(word => word.Length);
-            Dictionary<char, double> result = new Dictionary<char, double>();
-            foreach (string word in words)
-            {
-                foreach (var ch in word)
-                {
-                    if(!result.ContainsKey(ch))
-                        result.Add(ch, 1);
-                    else
-                        result[ch]++;
-                }
-            }
-
-            foreach (var item in result.ToDictionary(i=>i.Key, i=>i.Value))
-            {
-                result[item.Key] = item.Value / allCharsCount;
-            }
-            return result;
-        }
-
-        private List<Letter> InitLetters(int numberOfLetters)
-        {
-            var letters = new List<Letter>();
-            for (int i = 0; i < numberOfLetters; i++)
-            {
-                letters.Add(new Letter());
-            }
-            return letters;
-        }
-
-        private HashSet<string> GetAllWordsFromFileDictionary(string currentDictionaryPath)
-        {
-            return File.ReadAllLines(currentDictionaryPath)
-                .Where(word => word.Length == _numberOfLetters
-                && word.All(ch => char.IsLetter(ch)))
-                .Select(word => word.ToLower())
-                .ToHashSet();
-        }
-
-        internal void ClearData()
-        {
-            YellowChars.Clear();
-            GrayChars.Clear();
-            Letters = InitLetters(_numberOfLetters);
-            UsedWords.Clear();
-            AcceptableWords = GetProbabilityDictForWords(AllWords);
-            CurrentWord = null;
-        }
-
-        public string GetNextMostProbableWord()
-        {
-            if (CurrentWord != null && AcceptableWords.ContainsKey(CurrentWord))
-            {
-                var currentProbability = AcceptableWords[CurrentWord];
-                var lessProbableWords = AcceptableWords.Where(kv => kv.Value < currentProbability);
-                if(lessProbableWords.Count()!=0)
-                  return  lessProbableWords.OrderByDescending(kv => kv.Value).FirstOrDefault().Key;
-            }
-            return AcceptableWords.OrderByDescending(kv => kv.Value).FirstOrDefault().Key;
-        }
-
-        public  Dictionary<string, double> GetProbabilityDictForWords(IEnumerable<string> words)
-        {
-            Dictionary<string, double> result = new Dictionary<string, double>();
-            foreach (var word in words)
-            {
-                double wordProbability = 0;
-                foreach (var ch in word)
-                {
-                    wordProbability += _letterFreq[ch];
-                }
-                result[word] = wordProbability;
-            }
-
-            return result;
         }
     }
 }
