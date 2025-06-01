@@ -121,6 +121,7 @@
     </Compile>
     <Compile Include="Context.cs" />
     <Compile Include="FrequencyCalculator.cs" />
+    <Compile Include="Letter.cs" />
     <Compile Include="WordsDictionary.cs" />
     <Compile Include="LetterButton.cs" />
     <Compile Include="MainPage.xaml.cs">

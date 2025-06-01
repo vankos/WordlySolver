@@ -121,10 +121,4 @@ namespace WordlyRu
             (sender as Button).Content = currentContext.IsEng ? "RU" : "EN";
         }
     }
-
-    class Letter
-    {
-        public char? ExactLetter = null;
-        public HashSet<char> ImpossibleLetters = new HashSet<char>();
-    }
 }
