@@ -19,22 +19,21 @@ namespace WordlyRu
             return mostProbableWord;
         }
 
-        private Dictionary<char, double> CalcLettersFrequency(IEnumerable<string> words)
+        private static Dictionary<char, double> CalcLettersFrequency(IEnumerable<string> words)
         {
-            int allCharsCount = words.Sum(word => word.Length);
-            Dictionary<char, double> charFrequency = new Dictionary<char, double>();
-            foreach (string word in words)
+            IEnumerable<string> enumerable = words.ToList();
+            var allCharsCount = enumerable.Sum(word => word.Length);
+            var charFrequency = new Dictionary<char, double>();
+            foreach (var word in enumerable)
             {
-                foreach (var ch in word)
+                foreach (var ch in word.Where(ch => !charFrequency.TryAdd(ch, 1)))
                 {
-                    if (!charFrequency.ContainsKey(ch))
-                        charFrequency.Add(ch, 1);
-                    else
-                        charFrequency[ch]++;
+                    charFrequency[ch]++;
                 }
             }
 
-            foreach (var item in charFrequency.ToDictionary(i => i.Key, i => i.Value))
+            foreach (var item in charFrequency
+                         .ToDictionary(i => i.Key, i => i.Value))
             {
                 charFrequency[item.Key] = item.Value / allCharsCount;
             }
@@ -47,7 +46,7 @@ namespace WordlyRu
             foreach (var word in words)
             {
                 double wordProbability = 0;
-                foreach (var ch in word)
+                foreach (var ch in word.Distinct())
                 {
                     wordProbability += _letterFrequency[ch];
                 }
