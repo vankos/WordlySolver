@@ -111,8 +111,14 @@ namespace WordlyRu
 
         private void AnotherWord_Click(object _, RoutedEventArgs __)
         {
-            DisplayWord(currentContext.GetApropriateWord());
+            currentContext.UsedWords.Add(currentContext.CurrentWord);
+            string foundWord = currentContext.GetApropriateWord();
+            if (foundWord == null)
+                InfoText.Text = "Больше вариантов нет";
+            else
+                DisplayWord(foundWord);
         }
+        
         private void SwitchLangButton_Click(object sender, RoutedEventArgs _)
         {
             bool isEnglish = !currentContext.IsEng;
